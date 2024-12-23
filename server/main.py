@@ -97,6 +97,14 @@ def add_password(token: str , service, login, password):
     db.add_password(user_id, service, login, password)
     return "Success"
 
+@app.post("/password/delete", tags=["Password"])
+def delete_password(token: str, service):
+    payload = verify_token(token)
+    user_id = payload.get("user_id")
+    db.delete_password(user_id, service)
+    return "Success"
+
+
 if __name__ == "__main__":
     uvicorn.run(app, port=55535)
 

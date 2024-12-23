@@ -110,6 +110,7 @@ class PasswordManagerApp(ctk.CTk):
         password = self.password_entry.get()
 
         if site and login and password:
+            password = utils.encrypt_password(self.masterKey, password)
             if not utils.check_token(self.ip, self.token):
                 self.token = utils.login_user(self.ip, self.login, self.password)
             utils.add_password(self.ip, self.token, site, login, password)
@@ -124,16 +125,10 @@ class PasswordManagerApp(ctk.CTk):
         if not utils.check_token(self.ip, self.token):
             self.token = utils.login_user(self.ip, self.login, self.password)
         site = self.site_entry.get()
-        utils.
-        selected_text = self.password_listbox.get("1.0", "end").strip()
-        if selected_text:
-            lines = selected_text.split("\n")
-            if lines:
-                last_line = lines[-1]
-                if last_line:
-                    site, login, password = last_line.split(" | ")
-                    self.passwords = [p for p in self.passwords if p != (site, login, password)]
-                    self.update_password_list()
+        self.site_entry.delete(0, "end")
+        if site in utils.get_passwords(self.ip, self.token).keys():
+            utils.delete_password(self.ip, self.token ,site)
+            self.load_passwords()
         else:
             messagebox.showwarning("Ошибка", "Список пуст")
 
@@ -142,14 +137,14 @@ class PasswordManagerApp(ctk.CTk):
         if not utils.check_token(self.ip, self.token):
             self.token = utils.login_user(self.ip, self.login, self.password)
         passw = utils.get_passwords(self.ip, self.token)
-        print(passw)
-        print(type(passw))
         key = passw.keys()
         for site in key:
             login = passw[site][0]
             password = passw[site][1]
+            password = utils.decrypt_password(self.masterKey, password)
             self.passwords.append((site, login, password))
             self.update_password_list()
+        self.update_password_list()
 
 
 if __name__ == "__main__":

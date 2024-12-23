@@ -104,6 +104,11 @@ class DatabaseManager:
         self.execute_query(add_password, (user_id, service, login, password))
         return "Success"
 
+    def delete_password(self, user_id: int, service: str):
+        delete_password_query = """
+        DELETE FROM passwords WHERE owner_id = %s AND service = %s;"""
+        self.execute_query(delete_password_query, (user_id, service))
+        return "Success"
     def close_connection(self):
         if self.connection:
             self.connection.close()

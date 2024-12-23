@@ -1,7 +1,8 @@
 import requests
 import yaml
 from Crypto.Cipher import AES
-from Crypto.Hash import SHA256
+from Crypto.Util.Padding import pad, unpad
+from Crypto.Random import get_random_bytes
 import base64
 
 def load_config():
@@ -19,20 +20,6 @@ def ping_server(ip):
             return False
     except:
         return False
-
-def pad(data):
-    block_size = AES.block_size
-    padding_len = block_size - len(data) % block_size
-    return data + bytes([padding_len] * padding_len)
-
-def unpad(data):
-    padding_len = data[-1]
-    return data[:-padding_len]
-
-def hash(value):
-    hasher = SHA256.new()
-    hasher.update(value.encode('utf-8'))
-    return hasher.digest()
 
 def check_token(ip, token) -> bool:
     try:
@@ -95,20 +82,32 @@ def add_password(ip, token, service, service_loign, service_password):
             return True
         else:
             return False
+
+def delete_password(ip, token, service):
+    if check_token(ip, token):
+        url = "http://" + str(ip) + "/password/delete"
+        headers = {"accept": "application/json"}
+        params = {"token": token, "service": service}
+        responce = requests.post(url, headers=headers, params=params)
+        if responce.text == '"Success"':
+            return True
+        else:
+            return False
+
 def encrypt_password(master_key, password):
-    master_key = hash(master_key)
-    cipher = AES.new(master_key, AES.MODE_CBC)
-    iv = cipher.iv
-    password_bytes = password.encode('utf-8')
-    encrypted = cipher.encrypt(pad(password_bytes))
-    return base64.b64encode(iv + encrypted).decode('utf-8')
+    key = master_key.encode()[:32].ljust(32, b'\0')
+    iv = get_random_bytes(AES.block_size)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    encrypted = cipher.encrypt(pad(password.encode(), AES.block_size))
+    return base64.b64encode(iv + encrypted).decode()
 
 def decrypt_password(master_key, password):
-    master_key = hash(master_key)
-    data = base64.b64decode(password)
-    iv = data[:AES.block_size]
-    encrypted = data[AES.block_size:]
-    cipher = AES.new(master_key, AES.MODE_CBC, iv)
-    decrypted = unpad(cipher.decrypt(encrypted))
-    return decrypted.decode('utf-8')
-
+    try:
+        key = master_key.encode()[:32].ljust(32, b'\0')
+        encrypted_data = base64.b64decode(password)
+        iv = encrypted_data[:AES.block_size]
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+        decrypted = unpad(cipher.decrypt(encrypted_data[AES.block_size:]), AES.block_size)
+        return decrypted.decode()
+    except:
+        return "FALED MASTERKEY"
