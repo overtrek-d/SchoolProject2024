@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
-from pydantic import BaseModel
 from db_manager import DatabaseManager
 import utils
 import logging
@@ -21,19 +20,9 @@ try:
     logger.info("Connect to database")
 except Exception as e:
     logger.error("Faled connect to database", e)
+    exit(0)
 
 app = FastAPI()
-
-class User(BaseModel):
-    user_id: int
-    login: str
-    hash_password: str
-class Password(BaseModel):
-    password_id: int
-    owner_id: int
-    service: str
-    service_login: str
-    service_password: str
 
 def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes=TOKEN_TIME)):
     to_encode = data.copy()
@@ -55,8 +44,19 @@ def verify_token(token: str):
 def ping():
     return "Pong"
 
+@app.get("/token/check")
+def check_token(token: str):
+    if not token:
+        return "BADTOKEN"
 
-@app.post("/user/login")
+    try:
+        verify_token(token)
+        return "OK"
+    except HTTPException as e:
+        return "BADTOKEN"
+
+
+@app.post("/user/login", tags=["User"])
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user_check = db.login_user(login=form_data.username, hash_password=utils.hash(form_data.password))
     match user_check:
@@ -76,7 +76,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     access_token = create_access_token(data={"sub": form_data.username, "user_id": user_check})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.post("/user/register")
+@app.post("/user/register", tags=["User"])
 def register_user(username: str, password: str):
     password = utils.hash(password)
     if db.login_user(login=username, hash_password=password) in ["User not found", "Incorrect password"]:
@@ -84,11 +84,19 @@ def register_user(username: str, password: str):
         return "Success"
     return "User alredy register"
 
-@app.get("/password/get")
-def get_password(token: str = Depends(OAuth2PasswordBearer(tokenUrl="token"))):
+@app.get("/password/get", tags=["Password"])
+def get_passwords(token: str):
     payload = verify_token(token)
     user_id = payload.get("user_id")
     return db.get_user_passwords(user_id)
 
+@app.post("/password/add", tags=["Password"])
+def add_password(token: str , service, login, password):
+    payload = verify_token(token)
+    user_id = payload.get("user_id")
+    db.add_password(user_id, service, login, password)
+    return "Success"
+
 if __name__ == "__main__":
     uvicorn.run(app, port=55535)
+

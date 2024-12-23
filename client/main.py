@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from tkinter import messagebox
+import utils
 
 
 class LoginWindow(ctk.CTk):
@@ -16,7 +17,7 @@ class LoginWindow(ctk.CTk):
         self.master_password_entry = ctk.CTkEntry(self, show="*")
         self.master_password_entry.pack(pady=5)
 
-        self.server_ip_label = ctk.CTkLabel(self, text="IP-адрес сервера:")
+        self.server_ip_label = ctk.CTkLabel(self, text="IP сервера:")
         self.server_ip_label.pack(pady=5)
         self.server_ip_entry = ctk.CTkEntry(self)
         self.server_ip_entry.pack(pady=5)
@@ -31,31 +32,41 @@ class LoginWindow(ctk.CTk):
         self.server_password_entry = ctk.CTkEntry(self, show="*")
         self.server_password_entry.pack(pady=5)
 
-        self.login_button = ctk.CTkButton(self, text="Войти", command=self.verify_login)
+        self.login_button = ctk.CTkButton(self, text="Войти", command=self.login)
         self.login_button.pack(pady=20)
 
-    def verify_login(self):
+    def login(self):
         master_password = self.master_password_entry.get()
-        ip_address = self.server_ip_entry.get()
+        ip = self.server_ip_entry.get()
         server_login = self.server_login_entry.get()
         server_password = self.server_password_entry.get()
 
-        if master_password == "1234" and ip_address and server_login and server_password:
+        if master_password and ip and server_login and server_password and utils.ping_server(ip):
+            token = utils.login_user(ip, server_login, server_password)
+            if token in ["Register error", "Incorrect password"]:
+                messagebox.showerror("Ошибка", "Проверьте данные и пароль!")
             self.destroy()
-            app = PasswordManagerApp(ip_address, server_login)
+            app = PasswordManagerApp(ip, server_login, server_password, master_password, token)
             app.mainloop()
         else:
-            messagebox.showerror("Ошибка", "Некорректные данные или пустые поля")
+            messagebox.showerror("Ошибка", "Проверьте данные и статус сервера")
 
 
-# Главное приложение
 class PasswordManagerApp(ctk.CTk):
-    def __init__(self, ip_address, server_login):
+    def __init__(self, ip, login, password, masterKey, token):
         super().__init__()
+        self.ip = ip
+        self.login = login
+        self.password = password
+        self.token = token
+        self.masterKey = masterKey
+
+
+
         self.title("Менеджер паролей")
         self.geometry("600x400")
 
-        self.server_info_label = ctk.CTkLabel(self, text=f"Подключено к {ip_address} как {server_login}")
+        self.server_info_label = ctk.CTkLabel(self, text=f"Подключено к {ip} как {login}")
         self.server_info_label.pack(pady=10)
 
         self.main_frame = ctk.CTkFrame(self)
@@ -85,8 +96,8 @@ class PasswordManagerApp(ctk.CTk):
         self.password_listbox = ctk.CTkTextbox(self, height=200, width=580)
         self.password_listbox.pack(pady=10)
 
-        # Хранилище паролей
         self.passwords = []
+        self.load_passwords()
 
     def update_password_list(self):
         self.password_listbox.delete("1.0", "end")
@@ -99,15 +110,21 @@ class PasswordManagerApp(ctk.CTk):
         password = self.password_entry.get()
 
         if site and login and password:
-            self.passwords.append((site, login, password))
-            self.update_password_list()
+            if not utils.check_token(self.ip, self.token):
+                self.token = utils.login_user(self.ip, self.login, self.password)
+            utils.add_password(self.ip, self.token, site, login, password)
             self.site_entry.delete(0, "end")
             self.login_entry.delete(0, "end")
             self.password_entry.delete(0, "end")
+            self.load_passwords()
         else:
             messagebox.showwarning("Ошибка", "Заполните все поля")
 
     def delete_password(self):
+        if not utils.check_token(self.ip, self.token):
+            self.token = utils.login_user(self.ip, self.login, self.password)
+        site = self.site_entry.get()
+        utils.
         selected_text = self.password_listbox.get("1.0", "end").strip()
         if selected_text:
             lines = selected_text.split("\n")
@@ -119,6 +136,20 @@ class PasswordManagerApp(ctk.CTk):
                     self.update_password_list()
         else:
             messagebox.showwarning("Ошибка", "Список пуст")
+
+    def load_passwords(self):
+        self.passwords = []
+        if not utils.check_token(self.ip, self.token):
+            self.token = utils.login_user(self.ip, self.login, self.password)
+        passw = utils.get_passwords(self.ip, self.token)
+        print(passw)
+        print(type(passw))
+        key = passw.keys()
+        for site in key:
+            login = passw[site][0]
+            password = passw[site][1]
+            self.passwords.append((site, login, password))
+            self.update_password_list()
 
 
 if __name__ == "__main__":
