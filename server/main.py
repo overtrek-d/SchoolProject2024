@@ -61,17 +61,9 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user_check = db.login_user(login=form_data.username, hash_password=utils.hash(form_data.password))
     match user_check:
         case "User not found":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            return "User not found"
         case "Incorrect password":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect password",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            return "Incorrect password"
 
     access_token = create_access_token(data={"sub": form_data.username, "user_id": user_check})
     return {"access_token": access_token, "token_type": "bearer"}
