@@ -1,0 +1,13 @@
+certifi==2024.12.14
+charset-normalizer==3.4.0
+darkdetect==0.8.0
+idna==3.10
+packaging==24.2
+pycryptodome==3.21.0
+PyYAML==6.0.2
+urllib3==2.2.3
+fastapi==0.115.6
+pyjwt==2.9.0
+psycopg2==2.9.9
+python-multipart==0.0.9
+uvicorn==0.32.1
