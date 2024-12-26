@@ -4,3 +4,4 @@ dataBasePassword: yetanotherpassword
 dataBaseHost: yetAnotherHost
 dataBasePort: 0000
 tokenAPIKey: yetAnotherKey
+portAPI: 0000
