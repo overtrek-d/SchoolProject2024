@@ -9,6 +9,8 @@ services:
     depends_on:
       - db
     command: python server/main.py
+    volumes:
+    - ./server:/app/server
 
   web_api:
     build: .
