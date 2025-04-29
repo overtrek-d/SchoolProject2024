@@ -15,7 +15,7 @@ app.mount(
 )
 templates = Jinja2Templates(directory="/app/server/templates")
 
-SERVER_IP = "http://main_api:8000"
+SERVER_IP = "main_api:8000"
 
 @app.get("/", response_class=HTMLResponse)
 def login_form(request: Request):

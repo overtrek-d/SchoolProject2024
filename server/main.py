@@ -98,5 +98,5 @@ def delete_password(token: str, service):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, port=config["portAPI"])
+    uvicorn.run(app, host="0.0.0.0", port=config["portAPI"])
 
