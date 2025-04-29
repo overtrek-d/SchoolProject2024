@@ -4,9 +4,13 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 from Crypto.Random import get_random_bytes
 import base64
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_PATH = os.path.join(BASE_DIR, "config.yaml")
 
 def load_config():
-    with open("config.yaml") as f:
+    with open(CONFIG_PATH, "r") as f:
         return yaml.safe_load(f)
 
 def ping_server(ip):

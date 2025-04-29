@@ -19,7 +19,7 @@ try:
     db.create_tables()
     logger.info("Connect to database")
 except Exception as e:
-    logger.error("Faled connect to database", e)
+    logger.error("Faled connect to database")
     exit(0)
 
 app = FastAPI()
