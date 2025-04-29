@@ -1,0 +1,7 @@
+dataBaseName: mydb
+dataBaseUser: postgres
+dataBasePassword: postgres
+dataBaseHost: db
+dataBasePort: 5432
+tokenAPIKey: yetAnotherKey
+portAPI: 8000

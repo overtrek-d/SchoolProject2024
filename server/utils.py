@@ -9,13 +9,13 @@ import base64
 
 logger = logging.getLogger(__name__)
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_PATH = os.path.join(BASE_DIR, "config.yaml")
+
+
 def config_load():
-    try:
-        with open("config.yaml") as f:
-            return yaml.safe_load(f)
-        logger.info("Loaded config")
-    except Exception as e:
-        logger.error(e)
+    with open(CONFIG_PATH, "r") as f:
+        return yaml.safe_load(f)
 
 def hash(value: str):
     return SHA256.new(value.encode('utf-8')).hexdigest()
