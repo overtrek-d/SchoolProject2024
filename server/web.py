@@ -72,4 +72,4 @@ def delete_password(request: Request, service: str = Form(...)):
     return RedirectResponse("/dashboard", status_code=302)
 
 if __name__ == "__main__":
-    uvicorn.run(app, port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)

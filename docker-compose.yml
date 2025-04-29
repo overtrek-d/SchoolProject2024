@@ -8,9 +8,9 @@ services:
       - "8000:8000"
     depends_on:
       - db
-    command: python server/main.py
+    command: python /app/server/main.py
     volumes:
-    - ./server:/app/server
+      - ./server:/app/server
 
   web_api:
     build: .
@@ -19,7 +19,9 @@ services:
       - "8001:8001"
     depends_on:
       - db
-    command: python server/web.py
+    command: python /app/server/web.py
+    volumes:
+      - ./server:/app/server
 
   db:
     image: postgres:14
