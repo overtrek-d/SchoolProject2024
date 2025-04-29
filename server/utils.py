@@ -70,7 +70,15 @@ def login_user(ip, login, password) -> str:
     elif response.text == '"Incorrect password"':
         return "Incorrect password"
     else:
-        return response.json().get("access_token")
+        if response.status_code == 200:
+            try:
+                return response.json().get("access_token")
+            except ValueError:
+                logging.error("Не удалось распарсить JSON: %s", response.text)
+                return None
+        else:
+            logging.error("Ошибка при логине: %s - %s", response.status_code, response.text)
+            return None
 
 def get_passwords(ip, token):
     if check_token(ip, token):

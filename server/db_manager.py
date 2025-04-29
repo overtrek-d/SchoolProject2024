@@ -75,12 +75,12 @@ class DatabaseManager:
         result = self.fetch_query(user_exists, (login,))
 
         if not result:
-            logging.warning("USER NOT FOUND", login)
+            logging.warning(f"USER NOT FOUND {login}")
             return "User not found"
 
         stored_hash_password = result[0][0]
         if stored_hash_password != hash_password:
-            logging.warning("INCORRECT PASSWORD", login)
+            logging.warning(f"INCORRECT PASSWORD {login}")
             return "Incorrect password"
 
         get_user_id = """
