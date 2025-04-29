@@ -1,7 +1,7 @@
-dataBaseName: yetAnotherName
-dataBaseUser: yetAnotherUser
-dataBasePassword: yetanotherpassword
-dataBaseHost: yetAnotherHost
-dataBasePort: 0000
+dataBaseName: mydb
+dataBaseUser: postgres
+dataBasePassword: postgres
+dataBaseHost: db
+dataBasePort: 5432
 tokenAPIKey: yetAnotherKey
-portAPI: 0000
+portAPI: 8000

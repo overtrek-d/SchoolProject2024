@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  main_api:
+    build: .
+    container_name: main_api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    command: python server/main.py
+
+  web_api:
+    build: .
+    container_name: web_api
+    ports:
+      - "8001:8001"
+    depends_on:
+      - db
+    command: python server/web.py
+
+  db:
+    image: postgres:14
+    container_name: project_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
