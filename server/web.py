@@ -13,7 +13,7 @@ app.mount(
     StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")),
     name="static"
 )
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="/app/server/templates")
 
 SERVER_IP = "http://main_api:8000"
 
